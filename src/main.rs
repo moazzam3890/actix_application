@@ -16,8 +16,8 @@ async fn index_1(data: web::Data<appstate>) -> String {
 struct id_card {
     id_no: String,
     name: String,
-    batch : u8,
-    quarter : u8,
+    batch : String,
+    quarter : String,
 }
 
 async fn index_2(id: web::Data<id_card>) -> String {
@@ -25,8 +25,8 @@ async fn index_2(id: web::Data<id_card>) -> String {
     let name = &id.name;
     let batch = &id.batch;
     let quarter = &id.quarter;
-    println!("ID Number : {}, Name : {}, Batch : {}, Quarter : {}", id_no, name, 
-    batch.to_string(), quarter.to_string())
+    format!("ID Number : {}, Name : {}, Batch : {}, Quarter : {}", id_no, name, 
+    batch, quarter)
 }
 #[actix_rt::main]
 async fn main () -> std::io::Result<()>{
@@ -41,12 +41,13 @@ async fn main () -> std::io::Result<()>{
         })
         //METHOD | PATH  |GET METHOD | FROM REQUEST (request handler index_1)
         .route("/index_1", web::get().to(index_1))
-        .data(id_card{
+        .data(id_card{ //Data is set and sent to request handler through struct at line 16 
             id_no: String::from("123"),
             name: String::from("Moazzam Adil Khan"),
-            batch: 2,
-            quarter: 3,
+            batch: String::from("2"),
+            quarter: String::from("3"),
         })
+        //METHOD | PATH  |GET METHOD | FROM REQUEST (request handler index_2)
         .route("/index_2", web::get().to(index_2))
     })
     .bind("127.0.0.1:8088")?
