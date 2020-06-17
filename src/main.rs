@@ -1,9 +1,10 @@
 use actix_web::{web, App, Responder, HttpServer};
+use std::sync::Mutex;
 
 async fn index_0() -> impl Responder{ //Request handler that return a response
     "Hello through .route!"
 }
-
+//App State
 struct appstate {
     app_name: String,
 }
@@ -12,7 +13,7 @@ async fn index_1(data: web::Data<appstate>) -> String {
     let app_name = &data.app_name;
     format!("Hello {}", app_name)
 }
-
+//ID-Card State
 struct id_card {
     id_no: String,
     name: String,
@@ -28,9 +29,27 @@ async fn index_2(id: web::Data<id_card>) -> String {
     format!("ID Number : {}, Name : {}, Batch : {}, Quarter : {}", id_no, name, 
     batch, quarter)
 }
+
+//Shared Mutable State:
+struct AppStateMutable {
+    //Mutex is neccessary to Mutate safely across threads
+    counter : Mutex<i32>,
+}
+
+async fn index_3(data: web::Data<AppStateMutable>) -> String {
+    //get the counters MutexGaurd
+    let mut counter = data.counter.lock().unwrap();
+    //access counter inside Mutex Gaurd
+    *counter += 1;
+    format!("Request Number : {}", counter)
+}
+
 #[actix_rt::main]
 async fn main () -> std::io::Result<()>{
-    HttpServer::new(||{
+    let counter = web::Data::new(AppStateMutable{
+        counter: Mutex::new(0),
+    });         //  move counter into the closure {}
+    HttpServer::new(move||{
         App::new()
             .service(web::scope("/app")//Configure scope for common root path
         .route("/index_0", web::get() //Create route with get http method gaurd
@@ -49,6 +68,10 @@ async fn main () -> std::io::Result<()>{
         })
         //METHOD | PATH  |GET METHOD | FROM REQUEST (request handler index_2)
         .route("/index_2", web::get().to(index_2))
+        // register the created data
+        .app_data(counter.clone())
+
+        .route("/index_3", web::get().to(index_3))
     })
     .bind("127.0.0.1:8088")?
     .run()
