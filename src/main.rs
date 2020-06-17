@@ -1,8 +1,15 @@
-use actix_web::{web, App, Responder, HttpServer};
+use actix_web::{web, App, Responder, HttpServer, HttpResponse, guard};
 use std::sync::Mutex;
+            //    different Data accessed here
+async fn index_0(data1: web::Data<id_card>, data2: web::Data<appstate>) -> impl Responder{ //Request handler that return a response
+    let app_name = &data2.app_name;
+    let id_no = &data1.id_no;
+    let name = &data1.name;
+    let batch = &data1.batch;
+    let quarter = &data1.quarter;
+    format!("Hello  {}, ID-Number: {}, Name: {}, Batch: {}, Quarter: {}", app_name,
+id_no, name, batch, quarter)
 
-async fn index_0() -> impl Responder{ //Request handler that return a response
-    "Hello through .route!"
 }
 //App State
 struct appstate {
@@ -11,7 +18,7 @@ struct appstate {
 //Data has been accessed by using Data<T> (T is a data type: here struct) 
 async fn index_1(data: web::Data<appstate>) -> String {
     let app_name = &data.app_name;
-    format!("Hello {}", app_name)
+    format!("Hello index_1 {}", app_name)
 }
 //ID-Card State
 struct id_card {
@@ -72,6 +79,17 @@ async fn main () -> std::io::Result<()>{
         .app_data(counter.clone())
 
         .route("/index_3", web::get().to(index_3)))
+        .service(
+            web::scope("/")
+                .guard(guard::Header("Host", "www.rust-lang.org"))
+                .route("", web::to(|| HttpResponse::Ok().body("www"))),
+        )
+        .service(
+            web::scope("/")
+                .guard(guard::Header("Host", "users.rust-lang.org"))
+                .route("", web::to(|| HttpResponse::Ok().body("user"))),
+        )
+        .route("/", web::to(|| HttpResponse::Ok()))
     })
     .bind("127.0.0.1:8088")?
     .run()
