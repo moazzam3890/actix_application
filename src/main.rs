@@ -1,5 +1,4 @@
 use actix_web::{web, App, Responder, HttpServer};
-use std::sync::Mutex;
 
 async fn index_0() -> impl Responder{ //Request handler that return a response
     "Hello through .route!"
@@ -14,6 +13,21 @@ async fn index_1(data: web::Data<appstate>) -> String {
     format!("Hello {}", app_name)
 }
 
+struct id_card {
+    id_no: String,
+    name: String,
+    batch : u8,
+    quarter : u8,
+}
+
+async fn index_2(id: web::Data<id_card>) -> String {
+    let id_no = &id.id_no;
+    let name = &id.name;
+    let batch = &id.batch;
+    let quarter = &id.quarter;
+    println!("ID Number : {}, Name : {}, Batch : {}, Quarter : {}", id_no, name, 
+    batch.to_string(), quarter.to_string())
+}
 #[actix_rt::main]
 async fn main () -> std::io::Result<()>{
     HttpServer::new(||{
@@ -27,6 +41,13 @@ async fn main () -> std::io::Result<()>{
         })
         //METHOD | PATH  |GET METHOD | FROM REQUEST (request handler index_1)
         .route("/index_1", web::get().to(index_1))
+        .data(id_card{
+            id_no: String::from("123"),
+            name: String::from("Moazzam Adil Khan"),
+            batch: 2,
+            quarter: 3,
+        })
+        .route("/index_2", web::get().to(index_2))
     })
     .bind("127.0.0.1:8088")?
     .run()
