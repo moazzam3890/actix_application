@@ -53,7 +53,7 @@ async fn main () -> std::io::Result<()>{
         App::new()
             .service(web::scope("/app")//Configure scope for common root path
         .route("/index_0", web::get() //Create route with get http method gaurd
-        .to(index_0)))// create a new route and add handler
+        .to(index_0))// create a new route and add handler
         .data(appstate{ // Application data is set and sent to request handler though struct
             //at line 8
             app_name: String::from("Actix-Web"),
@@ -71,7 +71,7 @@ async fn main () -> std::io::Result<()>{
         // register the created data
         .app_data(counter.clone())
 
-        .route("/index_3", web::get().to(index_3))
+        .route("/index_3", web::get().to(index_3)))
     })
     .bind("127.0.0.1:8088")?
     .run()
